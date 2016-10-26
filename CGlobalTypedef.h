@@ -1,6 +1,7 @@
 #ifndef CGLOBALTYPEDEF_H
 #define CGLOBALTYPEDEF_H
 
+#include <vector>
 #include <string>
 #include <iostream>
 

@@ -3,27 +3,30 @@
 //#include <sys/ioctl.h>				//Needed for I2C port
 //#include <linux/i2c-dev.h>			//Needed for I2C port
 //#include <linux/i2c.h>
-#include <math.h>
-#include <vector>
+//#include <math.h>
+//#include <vector>
 
 
-#include "CI2cClient.h"
+//#include "CI2cClient.h"
+
+#include "CBalanceComponent.h"
 
 
-
-
-void initSensor();
-void readAxisData();
+//void initSensor();
+//void readAxisData();
 
 int main()
 {	
+    CBalanceComponent balanceComponent;
+    balanceComponent.startWork();
 
-	initSensor();
+
+    //initSensor();
 
 for (int i=0; i<100; ++i)
 {
 	sleep(1);
-    readAxisData();
+    //readAxisData();
 }
 
 	
@@ -31,7 +34,7 @@ for (int i=0; i<100; ++i)
 }
 
 
-
+/*
 void initSensor()
 {
 
@@ -79,4 +82,4 @@ void readAxisData()
 	}
 }
 	
-	
+    */

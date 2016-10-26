@@ -7,7 +7,7 @@
 #include <linux/i2c-dev.h>			//Needed for I2C port
 #include <linux/i2c.h>
 
-
+#include <cmath>
 #include "CGlobalTypedef.h"
 
 
@@ -16,15 +16,15 @@ class CI2cClient
 public:
 
 
-   static std::string readDataFromI2cRegister(const int8 i2cSlaveAdress, const int8 regNo, const uint8 nOfBytes);
-   static bool writeDataToI2cRegister(const int8 i2cSlaveAdress, const int8 regNo, const std::string& data);
+   std::string readDataFromI2cRegister(const int8 i2cSlaveAdress, const int8 regNo, const uint8 nOfBytes);
+   bool writeDataToI2cRegister(const int8 i2cSlaveAdress, const int8 regNo, const std::string& data);
 
 
 
-   static int convertToInt(const std::string& result) ;
-   static const std::string  convertToString(const int value);
-   static const std::string  convertToString(const short int value);
-   static const std::string  convertToString(const uint8 value);
+   int convertToInt(const std::string& result) ;
+   const std::string  convertToString(const int value);
+   const std::string  convertToString(const short int value);
+   const std::string  convertToString(const uint8 value);
 
 
  private:

@@ -2,6 +2,7 @@
 #define CACCELEROMETR_H
 
 
+
 #include "CGlobalTypedef.h"
 #include "caccelerometrhelper.h"
 #include "CI2cClient.h"
@@ -11,6 +12,7 @@ class CAccelerometr
 {
 
 
+public:
 
     CAccelerometr(CI2cClient& i2c);
     ~CAccelerometr() = default;
@@ -19,12 +21,11 @@ class CAccelerometr
     void setPowerMode(const bool isActive);
     bool getPowerMode();
 
-    void setResolution(const bool isFoolResolution);
+    void setFullResolution(const bool isFoolResolution);
     bool isFoolResolution();
 
     void setRange(RANGE range);
     RANGE getRange();
-
 
 
     bool setXOffset(const int  );
@@ -52,9 +53,9 @@ private:
     int mYOffset;
     int mZOffset;
 
-    const uint8 accelerometrAddress = 0x59;
+    const uint8 accelerometrAddress = 0x53;
 
-    void convertMessurementToG(short int messurement);
+    double convertMessurementToG(short int messurement);
     bool isCorrect8bit(const int value);
 
 
@@ -66,6 +67,8 @@ private:
 
     bool writeDataToReg(const REGISTERS , const int value);
     int readDataFromReg(const REGISTERS);
+
+    double calculateDataToGCoeficient() const ;
 
 };
 

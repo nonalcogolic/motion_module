@@ -1,7 +1,7 @@
 #ifndef CACCELEROMETRHELPER_H
 #define CACCELEROMETRHELPER_H
 
-enum REGISTERS
+enum class REGISTERS
 {
     WHO_I_AM = 0,
     XOFFSET = 0x1E,
@@ -28,6 +28,9 @@ enum class RANGE
     _16G
 };
 
+
+
+
 enum BITMASK
 {
     PWR_MESSURE = 0x08,
@@ -35,20 +38,22 @@ enum BITMASK
     DATA_FORMAT_RANGE = 0x03
 };
 
-int rangeToRegValue(RANGE range);
 
 
 
 
-class CAccelerometrHelper
+
+
+namespace CAccelerometrHelper
 {
-public:
+
+   const  double G = 9.8;
+
+   int getRangeDevider(RANGE range);
+   int rangeToRegValue(RANGE range);
 
 
 
-   CAccelerometrHelper();
-
-
-};
+}
 
 #endif // CACCELEROMETRHELPER_H
