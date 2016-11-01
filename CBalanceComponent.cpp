@@ -11,17 +11,14 @@ void CBalanceComponent::startWork()
     std::cout<<std::endl << "CBalanceComponent::startWork()";
 
     acceleromtr.setRange(RANGE::_16G);
-     sleep(1);
-    acceleromtr.setFullResolution(true);
-     sleep(1);
+    acceleromtr.setFullResolution(false);
     acceleromtr.setPowerMode(true);
-
-
 
 
     for (int i=0; i<100; ++i)
     {
-        sleep(1);
+        usleep(500000);
+
         acceleromtr.readDownAllAxis();
     }
 }

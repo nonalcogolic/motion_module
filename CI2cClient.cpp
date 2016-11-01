@@ -44,10 +44,6 @@ readDataFromI2cRegister(const int8 i2cSlaveAdress, const int8 regNo, const uint8
         close(file_i2c);
     }
 
-    std::cout<< "\n ReadFromReg done::"<<success;
-    for (auto symb : retvalue)
-        std::cout<< " "<<(int) symb;
-
     return retvalue;
 }
 
@@ -97,7 +93,6 @@ writeDataToI2cRegister(const int8 i2cSlaveAdress, const int8 regNo, const std::s
 int CI2cClient::
 convertToInt(const std::string& result)
 {
-    std::cout<<"\nconvert";
     short int convertationResult = 0;
 
     for (int i = 0 ; i<result.size() && i<4 ; ++i)
@@ -112,38 +107,30 @@ convertToInt(const std::string& result)
 const std::string CI2cClient::
 convertToString(const int value)
 {
-     std::cout << "\nconvert to 32 bit";
-    const std::string convertationResult = convertToStringByCount(value, 4);
-    return convertationResult;
+    return convertToStringByCount(value, 4);
 }
 
 const std::string CI2cClient::
 convertToString(const short int value)
 {
-     std::cout << "\nconvert to 16 bit";
-    const std::string convertationResult = convertToStringByCount(value, 2);
-    return convertationResult;
+    return convertToStringByCount(value, 2);
 }
 
 const std::string CI2cClient::
 convertToString(const uint8 value)
-{
-    std::cout << "\nconvert to 8 bit";
-    const std::string convertationResult = convertToStringByCount(value, 1);
-    return convertationResult;
+{  
+   return convertToStringByCount(value, 1);
 }
 
 
 const std::string CI2cClient::
-convertToStringByCount(const int value, const int bytesCount)
+convertToStringByCount(const int& value, const int& bytesCount)
 {
-    std::cout << "\nconvertToStringByCount()";
     std::string convertationResult;
-    convertationResult.reserve(bytesCount);
 
-    for (auto i = bytesCount-1 ; i >= 0 ; ++i)
+    for (int i = bytesCount-1 ; i >= 0 ; --i)
     {
-        const int8 byte = value & (int) ~(0xFF<<(8*i)) ;
+        uint8 byte = value>>(8*i);
         convertationResult.push_back(byte);
     }
     return convertationResult;

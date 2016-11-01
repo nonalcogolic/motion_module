@@ -28,7 +28,7 @@ public:
 
 
  private:
-   static const std::string convertToStringByCount(const int value, const int bytesCount);
+   static const std::string convertToStringByCount(const int & value, const int & bytesCount);
 
 };
 
