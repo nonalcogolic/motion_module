@@ -10,7 +10,7 @@
 class COpenGLGraphicalWidget : public QGLWidget
 {
    Q_OBJECT
-public:
+public: 
    COpenGLGraphicalWidget(QWidget *parent = 0);
    virtual ~COpenGLGraphicalWidget();
 

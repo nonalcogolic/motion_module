@@ -6,3 +6,12 @@
 /SensorPositionEmulation/SensorPositionEmulation/GeneratedFiles
 /SensorPositionEmulation/SensorPositionEmulation/Debug
 /SensorPositionEmulation/Win32
+/SensorPositionEmulation/bcryptprimitives.pdb/4A41B6585EF244A8A35C013518C8267A2/*.pd_
+/SensorPositionEmulation/cryptbase.pdb/76A631A064A14157A09D2FEEF88EE6112/*.pd_
+/SensorPositionEmulation/mpr.pdb/265D895A8CC747F38C45AB0AF31CC1BD2/*.pd_
+/SensorPositionEmulation/wimm32.pdb/42C95B6AD7424FCDBEC66B1E9213EFD12/*.pd_
+/SensorPositionEmulation/wintrust.pdb/83B8FA70B77A4C9C9CAD2E6446B4CB012/*.pd_
+/SensorPositionEmulation/wkernel32.pdb/90E50F7788FB4D54AEFB28159E48EFB71/*.error
+/SensorPositionEmulation/CLBCatQ.pdb/A9E49C41C6AE475B9A258B4F883C5D2B2/*.pd_
+*.pdb
+*.pd_

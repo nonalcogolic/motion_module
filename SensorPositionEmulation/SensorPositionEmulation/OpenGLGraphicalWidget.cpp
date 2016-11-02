@@ -127,7 +127,7 @@ drawSensor()
    glEnd();
 }
 
-
+ 
 
 void COpenGLGraphicalWidget::mousePressEvent(QMouseEvent* pe) // нажатие клавиши мыши
 {
