@@ -4,8 +4,12 @@
 
 COpenGLGraphicalWidget::COpenGLGraphicalWidget(QWidget *parent) // конструктор
    : QGLWidget(parent)
+   , xRotation (0)
+	, yRotation (0)
+	, zRotation (0)
+	, scale (1)
 {
-   resizeGL(200, 200); // задаем размеры окна
+ //  resizeGL(200, 200); // задаем размеры окна
    resize(200, 200);
 }
 
@@ -37,15 +41,22 @@ void COpenGLGraphicalWidget::paintGL() // рисование
 {
 
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // очистка экрана
-   glMatrixMode(GL_PROJECTION);
+   glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();           // загрузка единичную матрицу
 
-  
-  // glScalef(0.1, 0.1, 0.1);
-  
-  // glRotatef(20, 1, 1, 0);
- //  glRotatef(90, 0, 0, 1);
+
+
+	// glRotatef(25, 0.0f, 1.0f, 0.0f); // поворот по X
+	 glRotatef(20, 1.0f, 1.0f, 0.0f); // поворот по Y
    drawAxises();
+
+   glScalef(scale, scale, scale);
+   glRotatef(xRotation, 1.0f, 0.0f, 0.0f); // поворот по X
+   glRotatef(yRotation, 0.0f, 1.0f, 0.0f); // поворот по Y
+   glRotatef(zRotation, 0.0f, 0.0f, 1.0f); // поворот по Z
+
+
+  
 
    drawSensor();
  
@@ -54,14 +65,16 @@ void COpenGLGraphicalWidget::paintGL() // рисование
 void COpenGLGraphicalWidget::
 drawAxises()
 {
-   glRotatef(20, 1, 0, 0);
-   glRotatef(40, 0, 1, 0);
-  // glRotatef(90, 0, 0, 1);
+
+	
+//   glRotatef(80, 1, 1, 0);
+ //  glRotatef(40, 0, 1, 0);
+   //glRotatef(0, 0, 0, 1);
    QColor axisColor(0, 0, 0, 255);
    qglColor(axisColor);
    glBegin(GL_LINES);
-   glVertex3f(0, -1, 0);
-   glVertex3f(0, 1, 0);
+   glVertex3f(0, -0.8, 0);
+   glVertex3f(0, 0.8, 0);
    glEnd();
 
    glBegin(GL_LINES);
@@ -80,12 +93,63 @@ void COpenGLGraphicalWidget::
 drawSensor()
 {
   
-   QColor axisColor(0, 100, 0, 255);
-   qglColor(axisColor);
+   QColor bkGround(0, 0, 100, 255);
+   qglColor(bkGround);
    glBegin(GL_QUADS);
-   glVertex3f(-0.5, 0.5, 0);
-   glVertex3f(-0.5, -0.5, 0);
-   glVertex3f(0.5, -0.5, 0);
-   glVertex3f(0.5, 0.5, 0);
+   glVertex3f(-0.4, -0.01, -0.2);
+   glVertex3f(-0.4, -0.01, -0.4);
+   glVertex3f(-0.2, -0.01, -0.4);
+   glVertex3f(-0.2, -0.01, -0.2);
    glEnd();
+
+
+   glBegin(GL_QUADS);
+   glVertex3f(0.3, -0.01, 0.2);
+   glVertex3f(0.3, -0.01, 0.4);
+   glVertex3f(0.2, -0.01, 0.4);
+   glVertex3f(0.2, -0.01, 0.2);
+   glEnd();
+
+   glBegin(GL_QUADS);
+   glVertex3f(0.1, -0.01, -0.2);
+   glVertex3f(0.1, -0.01, -0.3);
+   glVertex3f(0.2, -0.01, -0.3);
+   glVertex3f(0.2, -0.01, -0.2);
+   glEnd();
+
+   QColor frontGround(0, 100, 0, 255);
+   qglColor(frontGround);
+   glBegin(GL_QUADS);
+   glVertex3f(-0.5, 0.01, 0.5);
+   glVertex3f(-0.5, 0.01, -0.5);
+   glVertex3f(0.5, 0.01, -0.5);
+   glVertex3f(0.5, 0.01, 0.5);
+   glEnd();
+}
+
+
+
+void COpenGLGraphicalWidget::mousePressEvent(QMouseEvent* pe) // нажатие клавиши мыши
+{
+	mousePos = pe->pos();
+}
+void COpenGLGraphicalWidget::mouseMoveEvent(QMouseEvent* pe) // изменение положения стрелки мыши
+{
+	xRotation += 180 / scale*(GLfloat)(pe->y() - mousePos.y()) / height(); // вычисляем углы поворота
+	zRotation += 180 / scale*(GLfloat)(pe->x() - mousePos.x()) / width();
+
+	mousePos = pe->pos();
+
+	updateGL(); // обновляем изображение
+}
+void COpenGLGraphicalWidget::mouseReleaseEvent(QMouseEvent *pe)
+{
+}
+void COpenGLGraphicalWidget::wheelEvent(QWheelEvent* pe) // вращение колёсика мыши
+{
+	// если колесико вращаем вперед -- умножаем переменную масштаба на 1.1
+	// иначе -- делим на 1.1
+	if ((pe->delta())>0) scale *= 1.1; else if ((pe->delta())<0) scale /= 1.1;
+
+	updateGL();
 }
