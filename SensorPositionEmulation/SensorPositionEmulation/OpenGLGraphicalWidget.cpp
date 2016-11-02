@@ -37,20 +37,26 @@ void COpenGLGraphicalWidget::paintGL() // рисование
 {
 
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // очистка экрана
-   glMatrixMode(GL_MODELVIEW); 
+   glMatrixMode(GL_PROJECTION);
    glLoadIdentity();           // загрузка единичную матрицу
 
   
-   glScalef(0.1, 0.1, 0.1);
+  // glScalef(0.1, 0.1, 0.1);
   
-   glRotatef(20, 1, 1, 0);
-   printAxises();
+  // glRotatef(20, 1, 1, 0);
+ //  glRotatef(90, 0, 0, 1);
+   drawAxises();
 
+   drawSensor();
  
 }
 
-void COpenGLGraphicalWidget::printAxises()
+void COpenGLGraphicalWidget::
+drawAxises()
 {
+   glRotatef(20, 1, 0, 0);
+   glRotatef(40, 0, 1, 0);
+  // glRotatef(90, 0, 0, 1);
    QColor axisColor(0, 0, 0, 255);
    qglColor(axisColor);
    glBegin(GL_LINES);
@@ -66,5 +72,20 @@ void COpenGLGraphicalWidget::printAxises()
    glBegin(GL_LINES);
    glVertex3f(0, 0, -1);
    glVertex3f(0, 0, 1);
+   glEnd();
+}
+
+
+void COpenGLGraphicalWidget::
+drawSensor()
+{
+  
+   QColor axisColor(0, 100, 0, 255);
+   qglColor(axisColor);
+   glBegin(GL_QUADS);
+   glVertex3f(-0.5, 0.5, 0);
+   glVertex3f(-0.5, -0.5, 0);
+   glVertex3f(0.5, -0.5, 0);
+   glVertex3f(0.5, 0.5, 0);
    glEnd();
 }

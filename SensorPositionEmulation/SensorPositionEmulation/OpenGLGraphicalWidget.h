@@ -18,7 +18,8 @@ public:
   void paintGL();
 
 
-  void printAxises();
+  void drawAxises();
+  void drawSensor();
 
 };
 
