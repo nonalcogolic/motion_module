@@ -1,3 +1,8 @@
 *.pro
 *.pri
 *.user
+*.opensdf
+/SensorPositionEmulation/*.sdf
+/SensorPositionEmulation/SensorPositionEmulation/GeneratedFiles
+/SensorPositionEmulation/SensorPositionEmulation/Debug
+/SensorPositionEmulation/Win32
