@@ -6,6 +6,7 @@
 #include "CGlobalTypedef.h"
 #include "caccelerometrhelper.h"
 #include "CI2cClient.h"
+#include "CPositionHelper.h"
 
 
 class CAccelerometr
@@ -19,43 +20,39 @@ public:
 
 
     void setPowerMode(const bool isActive);
-    bool getPowerMode();
+    bool getPowerMode() const;
 
     void setFullResolution(const bool isFoolResolution);
-    bool isFoolResolution();
+    bool isFoolResolution() const;
 
     void setRange(RANGE range);
-    RANGE getRange();
+    RANGE getRange() const;
 
 
-    bool setXOffset(const int  );
-    int getXOffset();
-    bool setYOffset(const int  );
-    int getYOffset();
-    bool setZOffset(const int  );
-    int getZOffset();
+    bool setOffset(const CGeometric3dVector& offset );
+    const CGeometric3dVector&  getOffset() const;
+
 
     void readDownAllAxis();
 
 private:
     CI2cClient& mI2c;
 
-    double mLastXAxisData;
-    double mLastYAxisData;
-    double mLastZAxisData;
+    CGeometric3dVector mLastAxisData;
+    CGeometric3dVector mAxisOffset;
 
     bool mIsPowerOn;
     bool mIsFoolResolution;
 
     RANGE mRange;
 
-    int mXOffset;
-    int mYOffset;
-    int mZOffset;
+
 
     const uint8 accelerometrAddress = 0x53;
 
-    double convertMessurementToG(short int messurement);
+    double convertMessurementToG(const  int messurement);
+    double convertMessurementToG(double messurement);
+    int getMesurementSignMask();
     bool isCorrect8bit(const int value);
 
 
@@ -68,15 +65,13 @@ private:
     bool writeDataToReg(const REGISTERS , const int value);
     int readDataFromReg(const REGISTERS);
 
-    double calculateDataToGCoeficient() const ;
+    double calculateGCoeficient() const ;
 
 };
 
 
-inline bool CAccelerometr::isFoolResolution() {  return mIsFoolResolution; }
-inline int CAccelerometr::getXOffset() { return mXOffset ; }
-inline int CAccelerometr::getYOffset() { return mYOffset ; }
-inline int CAccelerometr::getZOffset() { return mZOffset ; }
-inline bool CAccelerometr::getPowerMode() { return mIsPowerOn; }
-inline RANGE CAccelerometr::getRange() { return mRange; }
+inline bool CAccelerometr::isFoolResolution() const {  return mIsFoolResolution; }
+inline const CGeometric3dVector& CAccelerometr::getOffset() const { return mAxisOffset ; }
+inline bool CAccelerometr::getPowerMode() const { return mIsPowerOn; }
+inline RANGE CAccelerometr::getRange() const { return mRange; }
 #endif // CACCELEROMETR_H

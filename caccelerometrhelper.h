@@ -22,10 +22,10 @@ enum class REGISTERS
 enum class RANGE
 {
     UNDEFINE,
-    _2G ,
-    _4G ,
-    _8G ,
-    _16G
+    _2G = 2 ,
+    _4G = 4 ,
+    _8G = 8 ,
+    _16G = 16
 };
 
 
@@ -48,6 +48,7 @@ namespace CAccelerometrHelper
 {
 
    const  double G = 9.8;
+   const double calibratedCoefOfG = 0.0040239;
 
    int getRangeDevider(RANGE range);
    int rangeToRegValue(RANGE range);

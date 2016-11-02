@@ -3,15 +3,11 @@
 
 CAccelerometr::CAccelerometr(CI2cClient& i2c)
     : mI2c(i2c)
-    , mLastXAxisData(0)
-    , mLastYAxisData(0)
-    , mLastZAxisData(0)
+    , mLastAxisData(0,0,0)
+    , mAxisOffset(0,0,0)
     , mIsPowerOn(false)
     , mIsFoolResolution(false)
     , mRange(RANGE::UNDEFINE)
-    , mXOffset(0)
-    , mYOffset(0)
-    , mZOffset(0)
 {
     cacheFlagsFromSensor();
 }
@@ -76,30 +72,40 @@ setRange(RANGE range)
 
 
 bool CAccelerometr::
-setXOffset(const int  offset)
+setOffset(const CGeometric3dVector& offset)
 {
-    return writeDataToReg(REGISTERS::XOFFSET, offset);
+    const bool success =
+           writeDataToReg(REGISTERS::XOFFSET, offset.getXAxis()) &&
+           writeDataToReg(REGISTERS::YOFFSET, offset.getYAxis()) &&
+           writeDataToReg(REGISTERS::ZOFFSET, offset.getZAxis());
+
+    if (success)
+    {
+        cacheOffsets();
+    }
+
+    return success;
 }
 
 
-bool CAccelerometr::
-setYOffset(const int  offset )
-{
-    return writeDataToReg(REGISTERS::YOFFSET, offset);
-}
-
-
-bool CAccelerometr::
-setZOffset(const int offset )
-{
-   return writeDataToReg(REGISTERS::ZOFFSET, offset);
-}
 
 
 double CAccelerometr::
-convertMessurementToG(short int messurement)
+convertMessurementToG(const  int messurement)
 {
-    return messurement * CAccelerometrHelper::G/calculateDataToGCoeficient()  ;
+    return messurement * calculateGCoeficient() * CAccelerometrHelper::G ;
+}
+
+double CAccelerometr::
+convertMessurementToG(double messurement)
+{
+    return messurement * calculateGCoeficient() * CAccelerometrHelper::G ;
+}
+
+int CAccelerometr::
+getMesurementSignMask()
+{
+    return (CAccelerometrHelper::getRangeDevider(mRange)*8) ;
 }
 
 bool CAccelerometr::
@@ -168,11 +174,11 @@ void CAccelerometr::
 cacheOffsets()
 {
 
-    mXOffset = readDataFromReg(REGISTERS::XOFFSET) ;
+    mAxisOffset.setXAxis(readDataFromReg(REGISTERS::XOFFSET)) ;
 
-    mYOffset = readDataFromReg(REGISTERS::YOFFSET) ;
+    mAxisOffset.setYAxis(readDataFromReg(REGISTERS::YOFFSET)) ; ;
 
-    mZOffset = readDataFromReg(REGISTERS::ZOFFSET) ;
+    mAxisOffset.setZAxis(readDataFromReg(REGISTERS::ZOFFSET)) ; ;
 }
 
 
@@ -184,9 +190,7 @@ writeDataToReg(const REGISTERS  reg, const int value)
 
     if(isCorrect8bit(value))
     {
-        std::cout << " <<1<< ";
         const std::string valueToWrite = mI2c.convertToString(static_cast<uint8> (value));
-        std::cout << " <<2<< ";
         isNoError = mI2c.writeDataToI2cRegister(accelerometrAddress, static_cast<uint8> (reg),valueToWrite );
     }
 
@@ -220,38 +224,41 @@ readDataFromReg(const REGISTERS reg)
     }
     else
     {
-        std::cout<<("Data read: \n");
-        std::vector<double> axisInfoVector;
+        std::vector<short int> axisInfoVector;
         for (int i=0; i<nBytes; i=i+2)
         {
-            const signed short int symb = 0 | axisData[i+1]<<8 | axisData[i];
+           short int symb = axisData[i+1]<<8 | axisData[i];
             const double dataAxis = convertMessurementToG (symb) ;
-            axisInfoVector.push_back(dataAxis);
+            axisInfoVector.push_back(symb);
             std::cout<<dataAxis<<" ";
         }
 
-        mLastXAxisData=axisInfoVector[0];
-        mLastYAxisData=axisInfoVector[1];
-        mLastZAxisData=axisInfoVector[2];
+        CGeometric3dVector vector(axisInfoVector);
 
-        const float moduleAcceleration = sqrt(pow(mLastXAxisData,2)+pow(mLastYAxisData,2)+pow(mLastZAxisData,2));
-        std::cout<<"Summary moduleAcceleration ="<<moduleAcceleration<<std::endl;
+        mLastAxisData = vector;
+
+ //       std::cout<<"\n Accel ="<< convertMessurementToG(mLastAxisData.lenght()) ;
+        std::cout<<"  xAng ="<< CGeometric3dVector::cosToDegree(mLastAxisData.angleX())
+                 <<"  yAng ="<< CGeometric3dVector::cosToDegree(mLastAxisData.angleY())
+                 <<"  zAng ="<< CGeometric3dVector::cosToDegree(mLastAxisData.angleZ())
+                 << std::endl;
+
     }
  }
 
 
  double CAccelerometr::
- calculateDataToGCoeficient() const
+ calculateGCoeficient() const
  {
 
-     double coef = 0 ;
+     float coef = 0 ;
      if (mIsFoolResolution)
      {
-        coef = CAccelerometrHelper::G/256;
+        coef = CAccelerometrHelper::calibratedCoefOfG ;
      }
      else
      {
-        coef = CAccelerometrHelper::G / (512/ CAccelerometrHelper::rangeToRegValue(mRange)) ;
+        coef = CAccelerometrHelper::calibratedCoefOfG * ( CAccelerometrHelper::getRangeDevider(mRange) / 2 )  ;
      }
 
 
