@@ -19,10 +19,10 @@ setPowerMode(const bool isActive)
 {
     if (isActive != mIsPowerOn)
     {
-        int regValue = readDataFromReg(REGISTERS::POWER_CTRL);
+        int regValue = readDataFromReg(ACCELEROMETR_REGISTERS::POWER_CTRL);
 
-        (isActive)? regValue|= BITMASK::PWR_MESSURE : regValue &= ~BITMASK::PWR_MESSURE;
-        bool isSuccess = writeDataToReg(REGISTERS::POWER_CTRL, regValue);
+        (isActive)? regValue|= ACCELEROMETR_BITMASK::PWR_MESSURE : regValue &= ~ACCELEROMETR_BITMASK::PWR_MESSURE;
+        bool isSuccess = writeDataToReg(ACCELEROMETR_REGISTERS::POWER_CTRL, regValue);
 
         if (isSuccess)
         {
@@ -37,12 +37,12 @@ setPowerMode(const bool isActive)
 void CAccelerometr::
 setFullResolution(const bool isFoolResolution)
 {
-    int regValue = readDataFromReg(REGISTERS::DATAFORMAT);
+    int regValue = readDataFromReg(ACCELEROMETR_REGISTERS::DATAFORMAT);
 
 
-    (isFoolResolution)? regValue|= BITMASK::DATA_FORMAT_FULL_RESULUTION : regValue &= ~BITMASK::DATA_FORMAT_FULL_RESULUTION;
+    (isFoolResolution)? regValue|= ACCELEROMETR_BITMASK::DATA_FORMAT_FULL_RESULUTION : regValue &= ~ACCELEROMETR_BITMASK::DATA_FORMAT_FULL_RESULUTION;
 
-    bool isSuccess = writeDataToReg(REGISTERS::DATAFORMAT, regValue);
+    bool isSuccess = writeDataToReg(ACCELEROMETR_REGISTERS::DATAFORMAT, regValue);
 
     if (isSuccess)
     {
@@ -57,10 +57,10 @@ void CAccelerometr::
 setRange(RANGE range)
 {
     std::cout<<std::endl << "CAccelerometr::setRange()";
-    int regValue = readDataFromReg(REGISTERS::DATAFORMAT);
-    int value = CAccelerometrHelper::rangeToRegValue(range) | (regValue & ~BITMASK::DATA_FORMAT_RANGE) ;
+    int regValue = readDataFromReg(ACCELEROMETR_REGISTERS::DATAFORMAT);
+    int value = CAccelerometrHelper::rangeToRegValue(range) | (regValue & ~ACCELEROMETR_BITMASK::DATA_FORMAT_RANGE) ;
 
-    bool isSuccess = writeDataToReg(REGISTERS::DATAFORMAT, value);
+    bool isSuccess = writeDataToReg(ACCELEROMETR_REGISTERS::DATAFORMAT, value);
     if (isSuccess)
      {
          mRange = range;
@@ -75,9 +75,9 @@ bool CAccelerometr::
 setOffset(const CGeometric3dVector& offset)
 {
     const bool success =
-           writeDataToReg(REGISTERS::XOFFSET, offset.getXAxis()) &&
-           writeDataToReg(REGISTERS::YOFFSET, offset.getYAxis()) &&
-           writeDataToReg(REGISTERS::ZOFFSET, offset.getZAxis());
+           writeDataToReg(ACCELEROMETR_REGISTERS::XOFFSET, offset.getXAxis()) &&
+           writeDataToReg(ACCELEROMETR_REGISTERS::YOFFSET, offset.getYAxis()) &&
+           writeDataToReg(ACCELEROMETR_REGISTERS::ZOFFSET, offset.getZAxis());
 
     if (success)
     {
@@ -108,17 +108,7 @@ getMesurementSignMask()
     return (CAccelerometrHelper::getRangeDevider(mRange)*8) ;
 }
 
-bool CAccelerometr::
-isCorrect8bit(const int value)
-{
-    bool res = true;
 
-    if(value >= GLOBAL::INT8_LIMIT)
-    {
-         res = false;
-    }
-    return res;
-}
 
 
 void CAccelerometr::
@@ -134,7 +124,7 @@ cacheFlagsFromSensor()
 void CAccelerometr::
 cacheRange()
 {
-     int regValue =  readDataFromReg(REGISTERS::DATAFORMAT) ;
+     int regValue =  readDataFromReg(ACCELEROMETR_REGISTERS::DATAFORMAT) ;
      RANGE range = static_cast<RANGE>(regValue & DATA_FORMAT_RANGE);
      mRange = range;
 }
@@ -144,9 +134,9 @@ void CAccelerometr::
 cacheResolution()
 {
     bool isFoolResolutionSet;
-    int regValue = readDataFromReg(REGISTERS::DATAFORMAT);
+    int regValue = readDataFromReg(ACCELEROMETR_REGISTERS::DATAFORMAT);
 
-    if (regValue && BITMASK::DATA_FORMAT_FULL_RESULUTION)
+    if (regValue && ACCELEROMETR_BITMASK::DATA_FORMAT_FULL_RESULUTION)
     {
         isFoolResolutionSet = true;
     }
@@ -159,9 +149,9 @@ void CAccelerometr::
 cachePowerMode()
 {
     bool powerOn = false;
-    int regValue =  readDataFromReg(REGISTERS::POWER_CTRL) ;
+    int regValue =  readDataFromReg(ACCELEROMETR_REGISTERS::POWER_CTRL) ;
 
-    if (regValue && BITMASK::PWR_MESSURE)
+    if (regValue && ACCELEROMETR_BITMASK::PWR_MESSURE)
     {
         powerOn = true;
     }
@@ -174,35 +164,32 @@ void CAccelerometr::
 cacheOffsets()
 {
 
-    mAxisOffset.setXAxis(readDataFromReg(REGISTERS::XOFFSET)) ;
+    mAxisOffset.setXAxis(readDataFromReg(ACCELEROMETR_REGISTERS::XOFFSET)) ;
 
-    mAxisOffset.setYAxis(readDataFromReg(REGISTERS::YOFFSET)) ; ;
+    mAxisOffset.setYAxis(readDataFromReg(ACCELEROMETR_REGISTERS::YOFFSET)) ; ;
 
-    mAxisOffset.setZAxis(readDataFromReg(REGISTERS::ZOFFSET)) ; ;
+    mAxisOffset.setZAxis(readDataFromReg(ACCELEROMETR_REGISTERS::ZOFFSET)) ; ;
 }
 
 
 bool CAccelerometr::
-writeDataToReg(const REGISTERS  reg, const int value)
+writeDataToReg(const ACCELEROMETR_REGISTERS  reg, const int value)
 {
     std::cout <<std::endl << "Write to "<< (int) reg<< " value " << value;
     bool isNoError = false;
 
-    if(isCorrect8bit(value))
+    if(CPositionHelper::isCorrect8bit(value))
     {
         const std::string valueToWrite = mI2c.convertToString(static_cast<uint8> (value));
         isNoError = mI2c.writeDataToI2cRegister(accelerometrAddress, static_cast<uint8> (reg),valueToWrite );
     }
 
-
-   std::string success =  (isNoError)?" success":" failed";
-    std::cout << success;
     return  isNoError;
 }
 
 
 int CAccelerometr::
-readDataFromReg(const REGISTERS reg)
+readDataFromReg(const ACCELEROMETR_REGISTERS reg)
 {
     const std::string regValue = mI2c.readDataFromI2cRegister(accelerometrAddress, static_cast<uint8> (reg), 1);
     std::cout << std::endl << "Read from "<< (int) reg<<" value " <<(int) regValue[0];
@@ -215,7 +202,7 @@ readDataFromReg(const REGISTERS reg)
  readDownAllAxis()
  {
     const int nBytes=6;
-    const std::string axisData = mI2c.readDataFromI2cRegister(accelerometrAddress, static_cast<uint8> (REGISTERS::XAcisL), nBytes);
+    const std::string axisData = mI2c.readDataFromI2cRegister(accelerometrAddress, static_cast<uint8> (ACCELEROMETR_REGISTERS::XAcisL), nBytes);
 
 
     if (axisData.size()==0)

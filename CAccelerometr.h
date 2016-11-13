@@ -53,7 +53,6 @@ private:
     double convertMessurementToG(const  int messurement);
     double convertMessurementToG(double messurement);
     int getMesurementSignMask();
-    bool isCorrect8bit(const int value);
 
 
     void cacheFlagsFromSensor();
@@ -62,8 +61,8 @@ private:
     void cachePowerMode();
     void cacheOffsets();
 
-    bool writeDataToReg(const REGISTERS , const int value);
-    int readDataFromReg(const REGISTERS);
+    bool writeDataToReg(const ACCELEROMETR_REGISTERS , const int value);
+    int readDataFromReg(const ACCELEROMETR_REGISTERS);
 
     double calculateGCoeficient() const ;
 
