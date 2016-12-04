@@ -34,6 +34,7 @@ public:
 
 
     void readDownAllAxis();
+    void init();
 
 private:
     CI2cClient& mI2c;

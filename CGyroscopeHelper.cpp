@@ -24,7 +24,7 @@ getSensvityOfScale(const GYRO_SCALE & scale)
     default:
         break;
     }
-    return result;
+    return result ;
 }
 
 

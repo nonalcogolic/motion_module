@@ -82,3 +82,13 @@ operator *(const CGeometric3dVector& vector) const
     //std::cout<< " \n"<<xAxis<<" * " << vector.getXAxis() <<" + " <<  yAxis <<" * " <<  vector.getYAxis() <<" + " <<  zAxis<< " * " <<  vector.getZAxis()<<"\n" ;
     return xAxis * vector.getXAxis() + yAxis * vector.getYAxis() + zAxis* vector.getZAxis();
 }
+
+CGeometric3dVector& CGeometric3dVector::
+operator+=( const CGeometric3dVector& right)
+
+{
+    xAxis += right.getXAxis();
+    yAxis += right.getYAxis();
+    zAxis += right.getZAxis();
+    return *this;
+}

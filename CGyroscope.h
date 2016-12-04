@@ -14,21 +14,28 @@ private:
     {
         WHO_AM_I = 0x0F,
         CTRL_REG1 = 0x20,
+        CTRL_REG2 = 0x21,
+        CTRL_REG3 = 0x22,
         CTRL_REG4 = 0x23,
+        CTRL_REG5 = 0x24,
 
+        OUT_TEMP = 0x26,
+        STATUS_REG = 0x27,
         XAcisL = 0x28,
         XAcisH = 0x29,
         YAcisL = 0x2A,
         YAcisH = 0x2B,
         ZAcisL = 0x2C,
         ZAcisH = 0x2D,
-        FIFO_CTRL_REG = 0x2E
+        FIFO_CTRL_REG = 0x2E,
+        INT1_CFG = 0x30,
+        INT1_SRC = 0x31
 
     };
 
     enum GYRO_BITMASK
     {
-        PWR_MODE = 0x0F,
+        PWR_MODE = 0x08,
         BLOCK_DATA_UPDATE = 0x80,
         SCALE = 0x30,
         OUTPUT_DATA_RATE = 0xC0,
@@ -41,6 +48,7 @@ public:
 
     void readDownAllAxis();
 
+    void init();
 
     void setPowerOn(const bool& isActive);
     const bool& getPowerOn() const;
@@ -60,6 +68,14 @@ public:
     const GYRO_FIFO_MODE&  getFifoMode() const;
 
     int whoAmI();
+    int readInt1StatusReg();
+    int readInt1ConfigurationReg();
+    int readStatusReg();
+    int readTemperatureReg();
+
+    const CGeometric3dVector& getLastAxisData() const;
+
+    double convertToDeegreePerSec(const int& result);
 
 private:
 
@@ -84,16 +100,12 @@ private:
             const int inputValue, const GYRO_REGISTERS& reg ,
             const GYRO_BITMASK& valueMask, const int maskOffset ) const ;
 
-public:  //TODO DELETE ACCESSOR
     void cacheAllDataFromSensor();
     void cachePowerOn();
     void cacheDataUpdateBlockedWhenRegIsReading();
     void cacheScale();
     void cacheOutputDataRate();
     void cacheFifoMode();
-
-    double convertResultToDouble(const int& result);
-
 };
 
 inline const bool& CGyroscope::getPowerOn() const { return mIsPowerOn;}
@@ -101,5 +113,6 @@ inline const bool& CGyroscope::getIsDataUpdateBlockedWhenRegIsReading() const { 
 inline const GYRO_SCALE& CGyroscope::getScale() const { return mScale;}
 inline const GYRO_OUTPUT_DATA_RATE& CGyroscope::getOutputDataRate() const { return mOutputDataRate; }
 inline const GYRO_FIFO_MODE&  CGyroscope::getFifoMode() const { return mFifoMode; }
+inline const CGeometric3dVector& CGyroscope::getLastAxisData() const { return mLastAxisData; }
 
 #endif // CGYROSCOPE_H

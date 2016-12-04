@@ -8,50 +8,57 @@ CGyroscope::CGyroscope(CI2cClient& i2c)
     , mOutputDataRate(GYRO_OUTPUT_DATA_RATE::ODR_100)
     , mFifoMode(GYRO_FIFO_MODE::MODE_BYPASS)
 {
-    cacheAllDataFromSensor();
+
 }
 
+
+void CGyroscope::init()
+{
+    setIsDataUpdateBlockedWhenRegIsReading(true);
+    setScale(GYRO_SCALE::DPS_500);
+    setOutputDataRate(GYRO_OUTPUT_DATA_RATE::ODR_800);
+    setPowerOn(true);
+
+    cacheAllDataFromSensor();
+}
 
 void CGyroscope::
 readDownAllAxis()
 {
     const int nBytes=6;
-    const std::string axisData = mI2c.readDataFromI2cRegister(gyroAddress , static_cast<uint8> (GYRO_REGISTERS::XAcisL) | (1<<7), nBytes);
+    int regAddress = static_cast<uint8>(GYRO_REGISTERS::XAcisL);
+    readStatusReg();
+
+     std::vector<short int> axisBytes;
 
 
-    if (axisData.size()==0)
-    {
-        std::cout<<"Data wasn't recieved correct\n";
-    }
-    else
-    {
-        std::vector<short int> axisInfoVector;
-        for (int i=0; i<nBytes; i=i+2)
-        {
-           short int symb = axisData[i+1]<<8 | axisData[i];
-            const double dataAxis = convertResultToDouble (symb) ;
-            axisInfoVector.push_back(symb);
-            std::cout<<dataAxis<<" ";
-        }
 
-        CGeometric3dVector vector(axisInfoVector);
+     for (auto i=0; i<nBytes; ++i, ++regAddress)
+     {
+        int gyroRegData = readDataFromReg(static_cast<GYRO_REGISTERS>(regAddress));
+        axisBytes.push_back(gyroRegData);
+     }
 
-        mLastAxisData = vector;
+    std::vector<short int> axisInfoVector;
 
- //       std::cout<<"\n Accel ="<< convertMessurementToG(mLastAxisData.lenght()) ;
-        std::cout<<"  xAng ="<< CGeometric3dVector::cosToDegree(mLastAxisData.angleX())
-                 <<"  yAng ="<< CGeometric3dVector::cosToDegree(mLastAxisData.angleY())
-                 <<"  zAng ="<< CGeometric3dVector::cosToDegree(mLastAxisData.angleZ())
-                 << std::endl;
+     for (int i=0; i<nBytes; i=i+2)
+     {
+         short int symb = (axisBytes[i+1]<<8) | axisBytes[i];
 
-    }
+       //  const int dataAxis = convertToDeegreePerSec (symb) ;
+         axisInfoVector.push_back(symb);
+       //  std::cout<<dataAxis<<":";
+     }
+
+     CGeometric3dVector vector(axisInfoVector);
+
+     mLastAxisData = vector;
 }
 
 
 bool CGyroscope::
 writeDataToReg(const GYRO_REGISTERS reg, const int value) const
 {
-    std::cout <<std::endl << "Write to "<< (int) reg<< " value " << value;
     bool isNoError = false;
 
     if(CPositionHelper::isCorrect8bit(value))
@@ -68,7 +75,6 @@ int CGyroscope::
 readDataFromReg(const GYRO_REGISTERS reg) const
 {
     const std::string regValue = mI2c.readDataFromI2cRegister(gyroAddress, static_cast<uint8> (reg), 1);
-    std::cout << std::endl << "Read from "<< (int) reg<<" value " <<(int) regValue[0];
     return mI2c.convertToInt(regValue);
 }
 
@@ -187,14 +193,40 @@ int CGyroscope::updatedRegisterValue(
  }
 
 
+ int CGyroscope::
+ readInt1StatusReg()
+ {
+   return readDataFromReg(GYRO_REGISTERS::INT1_SRC) ;
+ }
+
+
+ int CGyroscope::
+ readInt1ConfigurationReg()
+ {
+   return readDataFromReg(GYRO_REGISTERS::INT1_CFG) ;
+ }
+
+ int CGyroscope::
+ readStatusReg()
+ {
+   return readDataFromReg(GYRO_REGISTERS::STATUS_REG) ;
+ }
+
+ int CGyroscope::
+ readTemperatureReg()
+ {
+   return readDataFromReg(GYRO_REGISTERS::OUT_TEMP) ;
+ }
+
+
  void CGyroscope::
  cacheAllDataFromSensor()
  {
-    cacheDataUpdateBlockedWhenRegIsReading();
-    cacheFifoMode();
-    cacheOutputDataRate();
-   cachePowerOn();
-   cacheScale();
+     cacheDataUpdateBlockedWhenRegIsReading();
+     cacheFifoMode();
+     cacheOutputDataRate();
+     cachePowerOn();
+     cacheScale();
  }
 
  void CGyroscope::
@@ -262,7 +294,7 @@ int CGyroscope::updatedRegisterValue(
 
 
  double  CGyroscope::
- convertResultToDouble(const int& result)
+ convertToDeegreePerSec(const int& result)
  {
      return CGyroscopeHelper::getSensvityOfScale(mScale)*result;
  }

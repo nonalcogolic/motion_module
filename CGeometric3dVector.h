@@ -19,6 +19,7 @@ public:
 
 
     int operator *(const CGeometric3dVector& vector) const;
+    CGeometric3dVector& operator+=(const CGeometric3dVector& right);
 
     double angleX() const;
     double angleY() const;

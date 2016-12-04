@@ -10,8 +10,16 @@ CAccelerometr::CAccelerometr(CI2cClient& i2c)
     , mRange(RANGE::UNDEFINE)
 {
     cacheFlagsFromSensor();
+
 }
 
+
+void CAccelerometr::init()
+{
+    setRange(RANGE::_16G);
+    setFullResolution(false);
+    setPowerMode(true);
+}
 
 
 void CAccelerometr::
