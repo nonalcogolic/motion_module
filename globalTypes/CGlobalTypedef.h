@@ -14,8 +14,6 @@ namespace GLOBAL
 {
     const int SHORT_LIMIT = (1<<16);
     const int INT8_LIMIT = (1<<8);
-
-
 }
 
 

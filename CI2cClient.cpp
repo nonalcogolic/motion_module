@@ -4,6 +4,7 @@
 std::string CI2cClient::
 readDataFromI2cRegister(const int8 i2cSlaveAdress, const int8 regNo, const uint8 nOfBytes)
 {
+    std::lock_guard<std::mutex> lk(mMutexFileActive);
     std::string retvalue;
     retvalue.append(nOfBytes,'\0');
 
@@ -50,7 +51,7 @@ readDataFromI2cRegister(const int8 i2cSlaveAdress, const int8 regNo, const uint8
 bool CI2cClient::
 writeDataToI2cRegister(const int8 i2cSlaveAdress, const int8 regNo, const std::string& data)
 {
-
+    std::lock_guard<std::mutex> lk(mMutexFileActive);
     bool retValue = true;
     const std::string filename = "/dev/i2c-1";
     int file_i2c;

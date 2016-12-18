@@ -6,20 +6,21 @@ CGyroscopeHelper::CGyroscopeHelper()
 
 
 ///L3G4200D 2.1. Table 4 .Sensitivity
-double CGyroscopeHelper::
+int CGyroscopeHelper::
 getSensvityOfScale(const GYRO_SCALE & scale)
 {
-    double result = 0 ;
+    //ALL VALUE MULTIPLIED ON 100000
+    int result = 0 ;
     switch (scale)
     {
     case GYRO_SCALE::DPS_250:
-        result = 0.00875;
+        result = 875;
         break;
     case GYRO_SCALE::DPS_500:
-        result = 0.0175;
+        result = 1750;
         break;
     case GYRO_SCALE::DPS_2000:
-        result = 0.07;
+        result = 7000;
         break;
     default:
         break;
@@ -28,7 +29,7 @@ getSensvityOfScale(const GYRO_SCALE & scale)
 }
 
 
-///L3G4200D 7.2. Table 22 .Sensitivity
+///L3G4200D 7.2. Table 22 .Output data rate
 int CGyroscopeHelper::
 getOutputDataRateInHz(const GYRO_OUTPUT_DATA_RATE & rate)
 {
@@ -57,4 +58,34 @@ getOutputDataRateInHz(const GYRO_OUTPUT_DATA_RATE & rate)
     }
 
     return outputDataRateInHz;
+}
+
+int CGyroscopeHelper::
+herzToUSecond(const GYRO_OUTPUT_DATA_RATE & rate )
+{
+    int retValue = 0;
+
+    switch (rate)
+    {
+    case GYRO_OUTPUT_DATA_RATE::ODR_100:
+        retValue = 10000;
+        break;
+
+    case GYRO_OUTPUT_DATA_RATE::ODR_200:
+        retValue = 5000;
+        break;
+
+    case GYRO_OUTPUT_DATA_RATE::ODR_400:
+        retValue = 2500;
+        break;
+
+    case GYRO_OUTPUT_DATA_RATE::ODR_800:
+        retValue = 1250;
+        break;
+
+    default:
+        break;
+    }
+
+    return retValue;
 }

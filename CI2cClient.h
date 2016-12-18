@@ -7,7 +7,8 @@
 #include <linux/i2c-dev.h>			//Needed for I2C port
 #include <linux/i2c.h>
 
-#include <cmath>
+#include <mutex>
+
 #include "CGlobalTypedef.h"
 
 
@@ -30,6 +31,8 @@ public:
  private:
    static const std::string convertToStringByCount(const int & value, const int & bytesCount);
 
+
+   std::mutex mMutexFileActive;
 };
 
 

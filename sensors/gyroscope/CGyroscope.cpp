@@ -1,21 +1,22 @@
 #include "CGyroscope.h"
 
-CGyroscope::CGyroscope(CI2cClient& i2c)
+CGyroscope::CGyroscope(CI2cClient& i2c, IGyroscopeListener &listener)
     : mI2c(i2c)
+    , mListener(listener)
     , mIsPowerOn(false)
     , mIsDataUpdateBlockedWhenRegIsReading(false)
     , mScale(GYRO_SCALE::DPS_250)
     , mOutputDataRate(GYRO_OUTPUT_DATA_RATE::ODR_100)
     , mFifoMode(GYRO_FIFO_MODE::MODE_BYPASS)
 {
-
+   // init();
 }
 
 
 void CGyroscope::init()
 {
     setIsDataUpdateBlockedWhenRegIsReading(true);
-    setScale(GYRO_SCALE::DPS_500);
+    setScale(GYRO_SCALE::DPS_250);
     setOutputDataRate(GYRO_OUTPUT_DATA_RATE::ODR_800);
     setPowerOn(true);
 
@@ -39,15 +40,16 @@ readDownAllAxis()
         axisBytes.push_back(gyroRegData);
      }
 
-    std::vector<short int> axisInfoVector;
+    std::vector<long int> axisInfoVector;
 
+    std::cout<<std::endl;
      for (int i=0; i<nBytes; i=i+2)
      {
          short int symb = (axisBytes[i+1]<<8) | axisBytes[i];
 
-       //  const int dataAxis = convertToDeegreePerSec (symb) ;
-         axisInfoVector.push_back(symb);
-       //  std::cout<<dataAxis<<":";
+         const long int dataAxis = convertToDeegreePerSec (symb) ;
+         axisInfoVector.push_back(dataAxis);
+         std::cout<<dataAxis/100000<<":";
      }
 
      CGeometric3dVector vector(axisInfoVector);
@@ -79,9 +81,8 @@ readDataFromReg(const GYRO_REGISTERS reg) const
 }
 
 
-
-
- void CGyroscope::setPowerOn(const bool& isActive)
+ void CGyroscope::
+ setPowerOn(const bool& isActive)
  {
      if (isActive != mIsPowerOn)
      {
@@ -286,15 +287,65 @@ int CGyroscope::updatedRegisterValue(
  cacheFifoMode()
  {
      int regValue = readDataFromReg(GYRO_REGISTERS::FIFO_CTRL_REG);
-
      regValue &= GYRO_BITMASK::FIFO_MODE;
-
      mFifoMode = static_cast<GYRO_FIFO_MODE> (regValue>>fifoModeOffsetInBit) ;
  }
 
 
- double  CGyroscope::
- convertToDeegreePerSec(const int& result)
+ long int CGyroscope::convertToDeegreePerSec(const int& result)
  {
      return CGyroscopeHelper::getSensvityOfScale(mScale)*result;
+ }
+
+
+
+ void CGyroscope::terminate()
+ {
+    setTerminated(true);
+ }
+
+ void CGyroscope::start()
+ {
+     setTerminated(false);
+     init();
+     usleep(5000);
+     while (true)
+     {
+        readDownAllAxis();
+        mListener.informationGyroDataRecieved(mLastAxisData);
+
+        delayOrWaitTerminate();
+
+        const bool wasTerminated = getTerminated();
+        if (wasTerminated)
+        {
+            break;
+        }
+     }
+ }
+
+
+ void CGyroscope::delayOrWaitTerminate()
+ {
+    std::unique_lock<std::mutex> lk(mGyroMutex);
+    std::chrono::microseconds delay(CGyroscopeHelper::herzToUSecond(mOutputDataRate));
+    mConditionTerminated.wait_for(lk, delay);
+ }
+
+ bool  CGyroscope::getTerminated()
+ {
+    std::lock_guard<std::mutex> lk(mGyroMutex);
+    return mWasTerminated;
+ }
+
+ void CGyroscope::setTerminated(const bool needTerminated)
+ {
+     std::lock_guard<std::mutex> lk(mGyroMutex);
+
+     mWasTerminated = needTerminated;
+
+     if (mWasTerminated)
+     {
+         mConditionTerminated.notify_one();
+     }
  }

@@ -7,6 +7,7 @@ enum class ACCELEROMETR_REGISTERS
     XOFFSET = 0x1E,
     YOFFSET = 0x1F,
     ZOFFSET = 0x20,
+    BW_RATE = 0x2C,
     POWER_CTRL = 0x2D,
     DATAFORMAT = 0x31,
     XAcisL = 0x32,
@@ -29,13 +30,23 @@ enum class RANGE
 };
 
 
+enum class RATE
+{
+    _1600,
+    _800,
+    _400,
+    _200,
+    _100
+};
+
 
 
 enum ACCELEROMETR_BITMASK
 {
     PWR_MESSURE = 0x08,
     DATA_FORMAT_FULL_RESULUTION = 0x08,
-    DATA_FORMAT_RANGE = 0x03
+    DATA_FORMAT_RANGE = 0x03,
+    BW_RATE_RATE = 0x0F
 };
 
 
@@ -46,15 +57,16 @@ enum ACCELEROMETR_BITMASK
 
 namespace CAccelerometrHelper
 {
-
    const  double G = 9.8;
    const double calibratedCoefOfG = 0.0040239;
 
-   int getRangeDevider(RANGE range);
-   int rangeToRegValue(RANGE range);
+   int getRangeDevider(const RANGE& range);
+   int rangeToRegValue(const RANGE& range);
+   RANGE convertRegValueToRange(const int & regValue);
 
-
-
+   int rateToRegValue(const RATE & rate);
+   RATE convertRegValueToRate(const int & regValue);
+   int convertRateToDelay(const RATE& rate);
 }
 
 #endif // CACCELEROMETRHELPER_H

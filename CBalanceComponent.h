@@ -4,20 +4,19 @@
 
 #include "CI2cClient.h"
 
-#include "CAccelerometr.h"
-#include "CGyroscope.h"
+#include "sensors/accelerometer/CAccelerometr.h"
+#include "sensors/gyroscope/CGyroscope.h"
 
 
 class CBalanceComponent
+        : public IAcelerometrListener
+        , public IGyroscopeListener
 {
 public:
     CBalanceComponent();
 
 
     void startWork();
-
-    void calculateRotation();
-
 
 private:
     CI2cClient i2c;
@@ -27,6 +26,9 @@ private:
 
     CGeometric3dVector accelerData;
     CGeometric3dVector gyroData;
+
+    virtual void informationAcelDataRecieved(const CGeometric3dVector& threeAxisReadings) ;
+    virtual void informationGyroDataRecieved(const CGeometric3dVector& threeAxisReadings) ;
 };
 
 #endif // CBALANCECOMPONENT_H

@@ -44,8 +44,9 @@ class CGyroscopeHelper
 public:
     CGyroscopeHelper();
 
-    static double getSensvityOfScale(const GYRO_SCALE & scale);
+    static int getSensvityOfScale(const GYRO_SCALE & scale); // value multiplied on 100000
     static int getOutputDataRateInHz(const GYRO_OUTPUT_DATA_RATE & rate);
+    static int herzToUSecond(const GYRO_OUTPUT_DATA_RATE & rate );
 };
 
 #endif // CGYROSCOPEHELPER_H

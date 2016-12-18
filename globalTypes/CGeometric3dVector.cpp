@@ -1,9 +1,11 @@
 #include "CGeometric3dVector.h"
 
 
+#include <cmath>
+
 
 CGeometric3dVector::
-CGeometric3dVector(std::vector<short int> threeAxisData)
+CGeometric3dVector(std::vector<long int> threeAxisData)
 {
     if (3 == threeAxisData.size())
     {
@@ -14,7 +16,7 @@ CGeometric3dVector(std::vector<short int> threeAxisData)
 }
 
 CGeometric3dVector::
-CGeometric3dVector(short int x, short int y, short int z)
+CGeometric3dVector(long int x, long int y, long int z)
     : xAxis(x)
     , yAxis(y)
     , zAxis(z)
@@ -29,7 +31,7 @@ lenght() const
 }
 
 double CGeometric3dVector::
-get3DVectorLenght(short int x, short int y, short int z)
+get3DVectorLenght(long int x, long int y, long int z)
 {
     return sqrt(pow(x,2)+pow(y,2)+pow(z,2));
 }

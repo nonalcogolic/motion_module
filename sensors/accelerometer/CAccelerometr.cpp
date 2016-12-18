@@ -1,15 +1,15 @@
 #include "CAccelerometr.h"
 
 
-CAccelerometr::CAccelerometr(CI2cClient& i2c)
+CAccelerometr::CAccelerometr(CI2cClient& i2c, IAcelerometrListener & listener)
     : mI2c(i2c)
+    , mAccelerometrListener(listener)
     , mLastAxisData(0,0,0)
     , mAxisOffset(0,0,0)
     , mIsPowerOn(false)
     , mIsFoolResolution(false)
     , mRange(RANGE::UNDEFINE)
 {
-    cacheFlagsFromSensor();
 
 }
 
@@ -17,8 +17,10 @@ CAccelerometr::CAccelerometr(CI2cClient& i2c)
 void CAccelerometr::init()
 {
     setRange(RANGE::_16G);
+    setOutputDataRate(RATE::_800);
     setFullResolution(false);
     setPowerMode(true);
+    cacheFlagsFromSensor();
 }
 
 
@@ -62,13 +64,13 @@ setFullResolution(const bool isFoolResolution)
 
 
 void CAccelerometr::
-setRange(RANGE range)
+setRange(const RANGE & range)
 {
     std::cout<<std::endl << "CAccelerometr::setRange()";
-    int regValue = readDataFromReg(ACCELEROMETR_REGISTERS::DATAFORMAT);
-    int value = CAccelerometrHelper::rangeToRegValue(range) | (regValue & ~ACCELEROMETR_BITMASK::DATA_FORMAT_RANGE) ;
+    int regValue = readDataFromReg(ACCELEROMETR_REGISTERS::BW_RATE);
+    int value = CAccelerometrHelper::rangeToRegValue(range) | (regValue & ~ACCELEROMETR_BITMASK::BW_RATE_RATE) ;
 
-    bool isSuccess = writeDataToReg(ACCELEROMETR_REGISTERS::DATAFORMAT, value);
+    bool isSuccess = writeDataToReg(ACCELEROMETR_REGISTERS::BW_RATE, value);
     if (isSuccess)
      {
          mRange = range;
@@ -78,6 +80,21 @@ setRange(RANGE range)
      std::cout <<"\nRange is ["<<(int)mRange<<"]";
 }
 
+
+void CAccelerometr::setOutputDataRate(const RATE & rate)
+{
+    std::cout<<std::endl << "CAccelerometr::setOutputDataRate()";
+    int regValue = readDataFromReg(ACCELEROMETR_REGISTERS::POWER_CTRL);
+    int value = CAccelerometrHelper::rateToRegValue(rate) | (regValue & ~ACCELEROMETR_BITMASK::BW_RATE_RATE) ;
+
+    bool isSuccess = writeDataToReg(ACCELEROMETR_REGISTERS::DATAFORMAT, value);
+    if (isSuccess)
+     {
+         mOutputDataRate = rate;
+     }
+
+     std::cout <<"\nRate is ["<<(int)mOutputDataRate<<"]";
+}
 
 bool CAccelerometr::
 setOffset(const CGeometric3dVector& offset)
@@ -133,7 +150,7 @@ void CAccelerometr::
 cacheRange()
 {
      int regValue =  readDataFromReg(ACCELEROMETR_REGISTERS::DATAFORMAT) ;
-     RANGE range = static_cast<RANGE>(regValue & DATA_FORMAT_RANGE);
+     RANGE range = CAccelerometrHelper::convertRegValueToRange(regValue && DATA_FORMAT_RANGE);
      mRange = range;
 }
 
@@ -171,14 +188,19 @@ cachePowerMode()
 void CAccelerometr::
 cacheOffsets()
 {
-
     mAxisOffset.setXAxis(readDataFromReg(ACCELEROMETR_REGISTERS::XOFFSET)) ;
-
-    mAxisOffset.setYAxis(readDataFromReg(ACCELEROMETR_REGISTERS::YOFFSET)) ; ;
-
-    mAxisOffset.setZAxis(readDataFromReg(ACCELEROMETR_REGISTERS::ZOFFSET)) ; ;
+    mAxisOffset.setYAxis(readDataFromReg(ACCELEROMETR_REGISTERS::YOFFSET)) ;
+    mAxisOffset.setZAxis(readDataFromReg(ACCELEROMETR_REGISTERS::ZOFFSET)) ;
 }
 
+void CAccelerometr::
+cacheOutputDataRate()
+{
+    RATE rate = RATE::_100;
+    int regValue =  readDataFromReg(ACCELEROMETR_REGISTERS::BW_RATE) ;
+    rate = CAccelerometrHelper::convertRegValueToRate(regValue && ACCELEROMETR_BITMASK::BW_RATE_RATE);
+    mOutputDataRate = rate;
+}
 
 bool CAccelerometr::
 writeDataToReg(const ACCELEROMETR_REGISTERS  reg, const int value)
@@ -219,7 +241,7 @@ readDataFromReg(const ACCELEROMETR_REGISTERS reg)
     }
     else
     {
-        std::vector<short int> axisInfoVector;
+        std::vector<long int> axisInfoVector;
         for (int i=0; i<nBytes; i=i+2)
         {
            short int symb = axisData[i+1]<<8 | axisData[i];
@@ -245,7 +267,6 @@ readDataFromReg(const ACCELEROMETR_REGISTERS reg)
  double CAccelerometr::
  calculateGCoeficient() const
  {
-
      float coef = 0 ;
      if (mIsFoolResolution)
      {
@@ -255,7 +276,60 @@ readDataFromReg(const ACCELEROMETR_REGISTERS reg)
      {
         coef = CAccelerometrHelper::calibratedCoefOfG * ( CAccelerometrHelper::getRangeDevider(mRange) / 2 )  ;
      }
-
-
      return coef;
+ }
+
+ void CAccelerometr::
+ start()
+ {
+     setTerminated(false);
+     init();
+     usleep(5000);
+     while (true)
+     {
+        readDownAllAxis();
+        mAccelerometrListener.informationAcelDataRecieved(mLastAxisData);
+
+        delayOrWaitTerminate();
+
+        const bool wasTerminated = getTerminated();
+        if (wasTerminated)
+        {
+            break;
+        }
+     }
+ }
+
+ void CAccelerometr::
+ terminate()
+ {
+    setTerminated(true);
+ }
+
+
+ void CAccelerometr::
+ setTerminated(const bool& terminated)
+ {
+    std::lock_guard<std::mutex> lk(mMutexAccel);
+
+    mWasTerminated = terminated;
+
+    if (mWasTerminated)
+    {
+        mConditionTerminateRecieved.notify_one();
+    }
+ }
+
+ bool CAccelerometr::getTerminated() const
+ {
+     std::lock_guard<std::mutex> lk(mMutexAccel);
+     return mWasTerminated;
+ }
+
+
+ void CAccelerometr::delayOrWaitTerminate()
+ {
+     std::unique_lock<std::mutex> lk(mMutexAccel);
+     std::chrono::microseconds delayUs(CAccelerometrHelper::convertRateToDelay(mOutputDataRate) );
+     mConditionTerminateRecieved.wait_for( lk, delayUs );
  }
