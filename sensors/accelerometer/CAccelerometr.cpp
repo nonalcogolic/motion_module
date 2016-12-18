@@ -241,12 +241,12 @@ readDataFromReg(const ACCELEROMETR_REGISTERS reg)
     }
     else
     {
-        std::vector<long int> axisInfoVector;
+        std::vector<long long int> axisInfoVector;
         for (int i=0; i<nBytes; i=i+2)
         {
            short int symb = axisData[i+1]<<8 | axisData[i];
             const double dataAxis = convertMessurementToG (symb) ;
-            axisInfoVector.push_back(symb);
+            axisInfoVector.push_back(dataAxis);
             std::cout<<dataAxis<<" ";
         }
 

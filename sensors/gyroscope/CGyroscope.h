@@ -78,8 +78,6 @@ private:
     GYRO_OUTPUT_DATA_RATE mOutputDataRate;
     GYRO_FIFO_MODE mFifoMode;
 
-
-
     CGeometric3dVector mLastAxisData;
     CGeometric3dVector mAxisOffset;
 

@@ -9,7 +9,7 @@ CGyroscope::CGyroscope(CI2cClient& i2c, IGyroscopeListener &listener)
     , mOutputDataRate(GYRO_OUTPUT_DATA_RATE::ODR_100)
     , mFifoMode(GYRO_FIFO_MODE::MODE_BYPASS)
 {
-   // init();
+    // init();
 }
 
 
@@ -21,6 +21,7 @@ void CGyroscope::init()
     setPowerOn(true);
 
     cacheAllDataFromSensor();
+    usleep(5000);
 }
 
 void CGyroscope::
@@ -30,31 +31,29 @@ readDownAllAxis()
     int regAddress = static_cast<uint8>(GYRO_REGISTERS::XAcisL);
     readStatusReg();
 
-     std::vector<short int> axisBytes;
+    std::vector<short int> axisBytes;
 
-
-
-     for (auto i=0; i<nBytes; ++i, ++regAddress)
-     {
+    for (auto i=0; i<nBytes; ++i, ++regAddress)
+    {
         int gyroRegData = readDataFromReg(static_cast<GYRO_REGISTERS>(regAddress));
         axisBytes.push_back(gyroRegData);
-     }
+    }
 
-    std::vector<long int> axisInfoVector;
+    std::vector<long long int> axisInfoVector;
 
     std::cout<<std::endl;
-     for (int i=0; i<nBytes; i=i+2)
-     {
-         short int symb = (axisBytes[i+1]<<8) | axisBytes[i];
+    for (int i=0; i<nBytes; i=i+2)
+    {
+        short int symb = (axisBytes[i+1]<<8) | axisBytes[i];
 
-         const long int dataAxis = convertToDeegreePerSec (symb) ;
-         axisInfoVector.push_back(dataAxis);
-         std::cout<<dataAxis/100000<<":";
-     }
+        const long long int dataAxis = convertToDeegreePerSec (symb) ;
+        axisInfoVector.push_back(dataAxis);
+        std::cout<<dataAxis/100000<<":";
+    }
 
-     CGeometric3dVector vector(axisInfoVector);
+    CGeometric3dVector vector(axisInfoVector);
 
-     mLastAxisData = vector;
+    mLastAxisData = vector;
 }
 
 
@@ -81,60 +80,60 @@ readDataFromReg(const GYRO_REGISTERS reg) const
 }
 
 
- void CGyroscope::
- setPowerOn(const bool& isActive)
- {
-     if (isActive != mIsPowerOn)
-     {
-         int regValue = readDataFromReg(GYRO_REGISTERS::CTRL_REG1);
+void CGyroscope::
+setPowerOn(const bool& isActive)
+{
+    if (isActive != mIsPowerOn)
+    {
+        int regValue = readDataFromReg(GYRO_REGISTERS::CTRL_REG1);
 
-         (isActive)? regValue|= GYRO_BITMASK::PWR_MODE : regValue &= ~GYRO_BITMASK::PWR_MODE;
-         bool isSuccess = writeDataToReg(GYRO_REGISTERS::CTRL_REG1, regValue);
+        (isActive)? regValue|= GYRO_BITMASK::PWR_MODE : regValue &= ~GYRO_BITMASK::PWR_MODE;
+        bool isSuccess = writeDataToReg(GYRO_REGISTERS::CTRL_REG1, regValue);
 
-         if (isSuccess)
-         {
-             mIsPowerOn = isActive;
-         }
-     }
- }
-
-
- void CGyroscope::
- setIsDataUpdateBlockedWhenRegIsReading(const bool& isUpdateBlocked)
- {
-     if (isUpdateBlocked != mIsDataUpdateBlockedWhenRegIsReading)
-     {
-         int regValue = readDataFromReg(GYRO_REGISTERS::CTRL_REG4);
-
-         (isUpdateBlocked)? regValue|= GYRO_BITMASK::BLOCK_DATA_UPDATE : regValue &= ~GYRO_BITMASK::BLOCK_DATA_UPDATE;
-         bool isSuccess = writeDataToReg(GYRO_REGISTERS::CTRL_REG4, regValue);
-
-         if (isSuccess)
-         {
-             mIsDataUpdateBlockedWhenRegIsReading = isUpdateBlocked;
-         }
-     }
- }
+        if (isSuccess)
+        {
+            mIsPowerOn = isActive;
+        }
+    }
+}
 
 
- void CGyroscope::
- setScale(const GYRO_SCALE& scale)
- {
-     if (scale != mScale)
-     {
-         int regValue = readDataFromReg(GYRO_REGISTERS::CTRL_REG4);
+void CGyroscope::
+setIsDataUpdateBlockedWhenRegIsReading(const bool& isUpdateBlocked)
+{
+    if (isUpdateBlocked != mIsDataUpdateBlockedWhenRegIsReading)
+    {
+        int regValue = readDataFromReg(GYRO_REGISTERS::CTRL_REG4);
 
-         regValue &= ~GYRO_BITMASK::SCALE;
-         regValue |= static_cast<int> (scale) << scaleOffsetInBit;
+        (isUpdateBlocked)? regValue|= GYRO_BITMASK::BLOCK_DATA_UPDATE : regValue &= ~GYRO_BITMASK::BLOCK_DATA_UPDATE;
+        bool isSuccess = writeDataToReg(GYRO_REGISTERS::CTRL_REG4, regValue);
 
-         bool isSuccess = writeDataToReg(GYRO_REGISTERS::CTRL_REG4, regValue);
+        if (isSuccess)
+        {
+            mIsDataUpdateBlockedWhenRegIsReading = isUpdateBlocked;
+        }
+    }
+}
 
-         if (isSuccess)
-         {
-             mScale = scale;
-         }
-     }
- }
+
+void CGyroscope::
+setScale(const GYRO_SCALE& scale)
+{
+    if (scale != mScale)
+    {
+        int regValue = readDataFromReg(GYRO_REGISTERS::CTRL_REG4);
+
+        regValue &= ~GYRO_BITMASK::SCALE;
+        regValue |= static_cast<int> (scale) << scaleOffsetInBit;
+
+        bool isSuccess = writeDataToReg(GYRO_REGISTERS::CTRL_REG4, regValue);
+
+        if (isSuccess)
+        {
+            mScale = scale;
+        }
+    }
+}
 
 
 void CGyroscope::
@@ -187,130 +186,129 @@ int CGyroscope::updatedRegisterValue(
 
 
 
- int CGyroscope::
- whoAmI()
- {
-   return readDataFromReg(GYRO_REGISTERS::WHO_AM_I) ;
- }
+int CGyroscope::
+whoAmI()
+{
+    return readDataFromReg(GYRO_REGISTERS::WHO_AM_I) ;
+}
 
 
- int CGyroscope::
- readInt1StatusReg()
- {
-   return readDataFromReg(GYRO_REGISTERS::INT1_SRC) ;
- }
+int CGyroscope::
+readInt1StatusReg()
+{
+    return readDataFromReg(GYRO_REGISTERS::INT1_SRC) ;
+}
 
 
- int CGyroscope::
- readInt1ConfigurationReg()
- {
-   return readDataFromReg(GYRO_REGISTERS::INT1_CFG) ;
- }
+int CGyroscope::
+readInt1ConfigurationReg()
+{
+    return readDataFromReg(GYRO_REGISTERS::INT1_CFG) ;
+}
 
- int CGyroscope::
- readStatusReg()
- {
-   return readDataFromReg(GYRO_REGISTERS::STATUS_REG) ;
- }
+int CGyroscope::
+readStatusReg()
+{
+    return readDataFromReg(GYRO_REGISTERS::STATUS_REG) ;
+}
 
- int CGyroscope::
- readTemperatureReg()
- {
-   return readDataFromReg(GYRO_REGISTERS::OUT_TEMP) ;
- }
-
-
- void CGyroscope::
- cacheAllDataFromSensor()
- {
-     cacheDataUpdateBlockedWhenRegIsReading();
-     cacheFifoMode();
-     cacheOutputDataRate();
-     cachePowerOn();
-     cacheScale();
- }
-
- void CGyroscope::
- cachePowerOn()
- {
-     bool powerOn = false;
-     int regValue =  readDataFromReg(GYRO_REGISTERS::CTRL_REG1) ;
-
-     if (regValue && GYRO_BITMASK::PWR_MODE)
-     {
-         powerOn = true;
-     }
-
-     mIsPowerOn = powerOn;
- }
+int CGyroscope::
+readTemperatureReg()
+{
+    return readDataFromReg(GYRO_REGISTERS::OUT_TEMP) ;
+}
 
 
- void CGyroscope::
- cacheDataUpdateBlockedWhenRegIsReading()
- {
-     bool isDataUpdateBlocked = false;
-     int regValue =  readDataFromReg(GYRO_REGISTERS::CTRL_REG4) ;
+void CGyroscope::
+cacheAllDataFromSensor()
+{
+    cacheDataUpdateBlockedWhenRegIsReading();
+    cacheFifoMode();
+    cacheOutputDataRate();
+    cachePowerOn();
+    cacheScale();
+}
 
-     if (regValue && GYRO_BITMASK::BLOCK_DATA_UPDATE)
-     {
-         isDataUpdateBlocked = true;
-     }
+void CGyroscope::
+cachePowerOn()
+{
+    bool powerOn = false;
+    int regValue =  readDataFromReg(GYRO_REGISTERS::CTRL_REG1) ;
 
-     mIsDataUpdateBlockedWhenRegIsReading = isDataUpdateBlocked;
- }
+    if (regValue && GYRO_BITMASK::PWR_MODE)
+    {
+        powerOn = true;
+    }
+
+    mIsPowerOn = powerOn;
+}
 
 
- void CGyroscope::
- cacheScale()
- {
+void CGyroscope::
+cacheDataUpdateBlockedWhenRegIsReading()
+{
+    bool isDataUpdateBlocked = false;
+    int regValue =  readDataFromReg(GYRO_REGISTERS::CTRL_REG4) ;
+
+    if (regValue && GYRO_BITMASK::BLOCK_DATA_UPDATE)
+    {
+        isDataUpdateBlocked = true;
+    }
+
+    mIsDataUpdateBlockedWhenRegIsReading = isDataUpdateBlocked;
+}
+
+
+void CGyroscope::
+cacheScale()
+{
     int regValue = readDataFromReg(GYRO_REGISTERS::CTRL_REG4);
 
     regValue &= GYRO_BITMASK::SCALE;
 
     mScale = static_cast<GYRO_SCALE> (regValue>>scaleOffsetInBit) ;
 
- }
+}
 
 
- void CGyroscope::
- cacheOutputDataRate()
- {
-     int regValue = readDataFromReg(GYRO_REGISTERS::CTRL_REG1);
+void CGyroscope::
+cacheOutputDataRate()
+{
+    int regValue = readDataFromReg(GYRO_REGISTERS::CTRL_REG1);
 
-     regValue &= GYRO_BITMASK::OUTPUT_DATA_RATE;
+    regValue &= GYRO_BITMASK::OUTPUT_DATA_RATE;
 
-     mOutputDataRate = static_cast<GYRO_OUTPUT_DATA_RATE> (regValue>>outputDataRateOffsetInBit) ;
- }
-
-
- void CGyroscope::
- cacheFifoMode()
- {
-     int regValue = readDataFromReg(GYRO_REGISTERS::FIFO_CTRL_REG);
-     regValue &= GYRO_BITMASK::FIFO_MODE;
-     mFifoMode = static_cast<GYRO_FIFO_MODE> (regValue>>fifoModeOffsetInBit) ;
- }
+    mOutputDataRate = static_cast<GYRO_OUTPUT_DATA_RATE> (regValue>>outputDataRateOffsetInBit) ;
+}
 
 
- long int CGyroscope::convertToDeegreePerSec(const int& result)
- {
-     return CGyroscopeHelper::getSensvityOfScale(mScale)*result;
- }
+void CGyroscope::
+cacheFifoMode()
+{
+    int regValue = readDataFromReg(GYRO_REGISTERS::FIFO_CTRL_REG);
+    regValue &= GYRO_BITMASK::FIFO_MODE;
+    mFifoMode = static_cast<GYRO_FIFO_MODE> (regValue>>fifoModeOffsetInBit) ;
+}
+
+
+long int CGyroscope::convertToDeegreePerSec(const int& result)
+{
+    return CGyroscopeHelper::getSensvityOfScale(mScale)*result;
+}
 
 
 
- void CGyroscope::terminate()
- {
+void CGyroscope::terminate()
+{
     setTerminated(true);
- }
+}
 
- void CGyroscope::start()
- {
-     setTerminated(false);
-     init();
-     usleep(5000);
-     while (true)
-     {
+void CGyroscope::start()
+{
+    setTerminated(false);
+    init();
+    while (true)
+    {
         readDownAllAxis();
         mListener.informationGyroDataRecieved(mLastAxisData);
 
@@ -321,31 +319,31 @@ int CGyroscope::updatedRegisterValue(
         {
             break;
         }
-     }
- }
+    }
+}
 
 
- void CGyroscope::delayOrWaitTerminate()
- {
+void CGyroscope::delayOrWaitTerminate()
+{
     std::unique_lock<std::mutex> lk(mGyroMutex);
     std::chrono::microseconds delay(CGyroscopeHelper::herzToUSecond(mOutputDataRate));
     mConditionTerminated.wait_for(lk, delay);
- }
+}
 
- bool  CGyroscope::getTerminated()
- {
+bool  CGyroscope::getTerminated()
+{
     std::lock_guard<std::mutex> lk(mGyroMutex);
     return mWasTerminated;
- }
+}
 
- void CGyroscope::setTerminated(const bool needTerminated)
- {
-     std::lock_guard<std::mutex> lk(mGyroMutex);
+void CGyroscope::setTerminated(const bool needTerminated)
+{
+    std::lock_guard<std::mutex> lk(mGyroMutex);
 
-     mWasTerminated = needTerminated;
+    mWasTerminated = needTerminated;
 
-     if (mWasTerminated)
-     {
-         mConditionTerminated.notify_one();
-     }
- }
+    if (mWasTerminated)
+    {
+        mConditionTerminated.notify_one();
+    }
+}

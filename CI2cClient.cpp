@@ -28,8 +28,9 @@ readDataFromI2cRegister(const int8 i2cSlaveAdress, const int8 regNo, const uint8
 
         std::string writeWord ;
         writeWord.push_back(regNo);
+        const int wordSize = writeWord.size();
 
-        if ((success)&& (write(file_i2c, writeWord.c_str(), writeWord.size()) != writeWord.size()))
+        if ((success)&& (write(file_i2c, writeWord.c_str(), wordSize) != wordSize))
         {
             std::cout<<"Failed to write to the i2c bus.\n";
             success = false;
@@ -75,8 +76,9 @@ writeDataToI2cRegister(const int8 i2cSlaveAdress, const int8 regNo, const std::s
            std::string writeWord;
            writeWord.push_back(regNo);
            writeWord = writeWord+data;
+           const int wordSize = writeWord.size();
 
-           if (write(file_i2c, writeWord.c_str(), writeWord.size()) != writeWord.size())
+           if (write(file_i2c, writeWord.c_str(), wordSize) != wordSize)
            {
               std::cout<<"Failed to write to the i2c bus.\n";
               retValue = retValue && false;
@@ -92,13 +94,14 @@ writeDataToI2cRegister(const int8 i2cSlaveAdress, const int8 regNo, const std::s
 
 
 int CI2cClient::
-convertToInt(const std::string& result)
+convertToInt(const std::string& input)
 {
     short int convertationResult = 0;
+    const int inputSize = input.size();
 
-    for (int i = 0 ; i<result.size() && i<4 ; ++i)
+    for (int i = 0 ; i<inputSize && i<4 ; ++i)
     {
-        convertationResult|= result[i]<< (8*i);
+        convertationResult|= input[i]<< (8*i);
     }
 
     return convertationResult;

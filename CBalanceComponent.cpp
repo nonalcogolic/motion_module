@@ -3,7 +3,8 @@
 CBalanceComponent::CBalanceComponent()
     : i2c()
     , acceleromtr(i2c, *this)
-    , gyro(i2c, *this)
+    , gyroscope(i2c, *this)
+    , magnetometr(i2c, *this)
 {
 }
 
@@ -11,11 +12,6 @@ CBalanceComponent::CBalanceComponent()
 
 void CBalanceComponent::startWork()
 {
-    for (int i=0; i<10000; ++i)
-    {
-        usleep(1250);
-     //   acceleromtr.readDownAllAxis();
-    }
 
 }
 
@@ -28,6 +24,11 @@ void CBalanceComponent::startWork()
  }
 
  void CBalanceComponent::informationGyroDataRecieved(const CGeometric3dVector& threeAxisReadings)
+ {
+
+ }
+
+ void CBalanceComponent::informationMagnDataRecieved(const CGeometric3dVector& threeAxisReadings)
  {
 
  }
